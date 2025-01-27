@@ -5,6 +5,7 @@ module.exports = {
         FILE_NOT_IN_REQUEST: "Archivo no cargado",
         ERROR_TO_GET_FILES: "Error al obtener los archivos"
     },
+    GENERIC_ERROR: "Se ha producido un error",
     authErrors: {
         GENERIC_ERROR: "Se ha producido un error",
         WRONG_CREDENTIALS: "Correo electrónico y contraseña son obligatorios",

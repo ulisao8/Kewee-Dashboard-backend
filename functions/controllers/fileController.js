@@ -56,7 +56,6 @@ module.exports = {
                 data
             });
         } catch (error) {
-            console.log(error)
             return res.status(500).send(fileErrors.ERROR_TO_GET_FILES);
         }
     },

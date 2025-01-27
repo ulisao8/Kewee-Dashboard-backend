@@ -66,5 +66,41 @@ module.exports = {
         } catch (e) {
             return false
         }
+    },
+
+    async getAllUsersFromAdmin(email) {
+        try {
+            const db = admin.firestore()
+            const usersSnapshot = await db
+                .collection(USER_COLLECTION)
+                .where('admin', '==', email)
+                .get()
+
+            if (usersSnapshot.empty) {
+                return false
+            }
+
+            let users = []
+
+            for (const doc of usersSnapshot.docs) {
+                const data = doc.data();
+                users.push(data);
+            }
+
+            if (!users.length) {
+                return false
+            }
+
+            return users
+        } catch (e) {
+
+        }
+    },
+
+    async deleteUserFromCollection(uid) {
+
+        return await admin.firestore().collection(USER_COLLECTION)
+            .doc(uid)
+            .delete()
     }
 };
