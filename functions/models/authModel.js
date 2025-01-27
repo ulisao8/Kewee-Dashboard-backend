@@ -17,7 +17,6 @@ module.exports = {
             throw error
         }
     },
-
     async updatePhotoURL(uid, photoURL) {
         try {
             return await admin.auth().updateUser(uid, {
@@ -27,7 +26,6 @@ module.exports = {
             throw error
         }
     },
-
     async getImageUrlOfItsAdmin(email) {
         const snapshot = await admin.firestore()
             .collection(USER_COLLECTION)
@@ -42,5 +40,12 @@ module.exports = {
         const userAdmin = await this.getUserByEmail(adminRef)
 
         return userAdmin.photoURL
+    },
+    async deleteUser(uid) {
+        try {
+            return await admin.auth().deleteUser(uid)
+        } catch (e) {
+            return false
+        }
     }
 };

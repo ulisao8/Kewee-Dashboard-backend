@@ -1,7 +1,7 @@
 const userModel = require('../models/userModel')
 const authModel = require('../models/authModel')
-const {SUCCESS_UPDATE, SUCCESS_CREATE, SUCCESS_GET} = require('../constants/success_messages')
-const { GENERIC_ERROR, USERS_NOT_FOUND } = require('../constants/error_messages')
+const successMessages = require('../constants/success_messages')
+const errorMessages = require('../constants/error_messages')
 
 module.exports = {
     async createUser(req, res) {
@@ -26,7 +26,7 @@ module.exports = {
             });
 
             return res.status(201).send({
-                message: SUCCESS_CREATE,
+                message: successMessages.authSuccess.SUCCESS_CREATE,
                 userId: userRecord.uid,
             });
         } catch (error) {
@@ -48,7 +48,7 @@ module.exports = {
             await userModel.setUserClaims(userAdmin.uid, claims)
 
             return res.status(201).send({
-                message: SUCCESS_UPDATE,
+                message: successMessages.authSuccess.SUCCESS_UPDATE,
                 userId: userAdmin.uid,
             });
         } catch (e) {
@@ -69,7 +69,7 @@ module.exports = {
             await authModel.updatePhotoURL(userAdmin.uid, photoURL)
 
             return res.status(201).send({
-                message: SUCCESS_UPDATE,
+                message: successMessages.authSuccess.SUCCESS_UPDATE,
                 userId: userAdmin.uid,
             });
         } catch (e) {
@@ -95,7 +95,7 @@ module.exports = {
 
             if (!usersSnapshot) {
                 return res.status(400).send({
-                    message:USERS_NOT_FOUND,
+                    message: errorMessages.authErrors.USER_NOT_FOUND,
                     userRequest: {
                         email : userRecord.email
                     },
@@ -111,12 +111,79 @@ module.exports = {
             })
 
             return res.status(200).send({
-                message: SUCCESS_GET,
+                message: successMessages.authSuccess.SUCCESS_GET,
                 data: users,
             });
         } catch (e) {
             return res.status(200).send({
-                message: GENERIC_ERROR
+                message: errorMessages.GENERIC_ERROR
+            });
+        }
+    },
+
+    async getAllUserFromAdmin(req, res) {
+        try {
+            const {authorization} = req.headers
+
+            if (!authorization) {
+                return res.status(400).send({
+                    message : "Datos requeridos no recibidos"
+                })
+            }
+
+            const token = authorization.split('Bearer ')[1]
+            const userRecord = await authModel.getUserByToken(token)
+
+            const usersSnapshot = await userModel.getAllUsersFromAdmin(userRecord.email)
+
+            if (!usersSnapshot) {
+                return res.status(400).send({
+                    message: errorMessages.userErrors.USERS_NOT_FOUND,
+                    name
+                });
+            }
+
+            const users = usersSnapshot.map(userSnapshot => {
+                return {
+                    "email" : userSnapshot.id,
+                    ...userSnapshot
+                }
+            })
+
+            return res.status(200).send({
+                message: successMessages.authSuccess.SUCCESS_GET,
+                data: users,
+            });
+        } catch (e) {
+            return res.status(200).send({
+                message: errorMessages.GENERIC_ERROR
+            });
+        }
+    },
+
+    async deleteUser(req, res) {
+        try {
+            const {authorization} = req.headers
+            const { email } = req.body;
+
+            if (!authorization || !email) {
+                return res.status(400).send({
+                    message : "Datos requeridos no recibidos"
+                })
+            }
+
+            const userRecord = await authModel.getUserByEmail(email)
+            const uid = userRecord.uid
+
+            await authModel.deleteUser(uid)
+            await userModel.deleteUserFromCollection(userRecord.email)
+
+            return res.status(200).send({
+                message: successMessages.authSuccess.SUCCESS_DELETE,
+            });
+        } catch (e) {
+            return res.status(400).send({
+                message: errorMessages.GENERIC_ERROR
             });
         }
     }
